@@ -1,5 +1,6 @@
 struct stat;
 struct rtcdate;
+struct module;
 
 // system calls
 int fork(void);
@@ -23,6 +24,9 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int addmod(struct module*);
+int rmmod(const char*);
+int nice(int pid, int val);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -35,8 +39,8 @@ int strcmp(const char*, const char*);
 void fprintf(int, const char*, ...);
 void printf(const char*, ...);
 char* gets(char*, int max);
-uint strlen(const char*);
-void* memset(void*, int, uint);
+unsigned int strlen(const char*);
+void* memset(void*, int, unsigned int);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);

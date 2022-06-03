@@ -89,3 +89,19 @@ sys_uptime(void)
 	release(&tickslock);
 	return xticks;
 }
+
+int
+sys_addmod(void)
+{
+	return 0;
+}
+
+int sys_rmmod(void)
+{
+	return 0;
+}
+
+int sys_nice(void)
+{
+	return 0;
+}
