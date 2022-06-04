@@ -298,6 +298,9 @@ wait(void)
 				release(&ptable.lock);
 				return pid;
 			}
+			if(p->state == RESIDENT){
+				return -1;
+			}
 		}
 
 		// No point waiting if we don't have any children.

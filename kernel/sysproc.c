@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "module.h"
 
 int
 sys_fork(void)
@@ -93,6 +94,18 @@ sys_uptime(void)
 int
 sys_addmod(void)
 {
+	int n;
+	argint(0, &n);
+	struct module *modarr;
+	argptr(1, &modarr, n * sizeof(struct module));
+
+	for(int i = 0; i < n; i++) {
+		
+	}
+
+
+
+	myproc()->state = RESIDENT;
 	return 0;
 }
 

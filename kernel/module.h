@@ -4,14 +4,14 @@ enum hooktype {KEYIN, INBUF, ENC, DEC, PROC, MAXHOOK}; // add new before MAXHOOK
 
 struct module {
     enum hooktype hookID;
-    char name[5];
+    char name[6];
     void (*func)(void*);
 };
 
 struct kmodule {
     int pid;
-    char name[5];
+    char name[6];
     void (*func)(void*);
 };
 
-kmodule hook[MAXHOOK][MAXMOD];
+struct kmodule hook[MAXHOOK][MAXMOD];

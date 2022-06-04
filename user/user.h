@@ -24,7 +24,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int addmod(struct module*);
+int addmod(int, struct module*);
 int rmmod(const char*);
 int nice(int pid, int val);
 
