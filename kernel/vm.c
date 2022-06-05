@@ -132,6 +132,10 @@ setupkvm(void)
 			freevm(pgdir);
 			return 0;
 		}
+	// map to allocated pdes for kernel modules
+	for(int i = 0; i < 10; i++) {
+		pgdir[PDX(MODBASE) + i] = V2P(MODBASE + i * PGSIZE * PGSIZE / 4) | PTE_P | PTE_M | PTE_W;
+	}
 	return pgdir;
 }
 
@@ -141,6 +145,14 @@ void
 kvmalloc(void)
 {
 	kpgdir = setupkvm();
+ 	// allocate first pdes for kernel modules
+	for(int i = 0; i < 10; i++) {
+		pte_t *pgtab;
+		if((pgtab = (pte_t*)kalloc()) == 0)
+			return 0;
+		memset(pgtab, 0, PGSIZE);
+		kpgdir[PDX(MODBASE) + i] = V2P(pgtab) | PTE_P | PTE_M | PTE_W;
+	}
 	switchkvm();
 }
 
@@ -266,7 +278,7 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 		pte = walkpgdir(pgdir, (char*)a, 0);
 		if(!pte)
 			a = PGADDR(PDX(a) + 1, 0, 0) - PGSIZE;
-		else if((*pte & PTE_P) != 0){
+		else if(((*pte & PTE_P) != 0) && (*pte & PTE_M) == 0){
 			pa = PTE_ADDR(*pte);
 			if(pa == 0)
 				panic("kfree");
@@ -289,7 +301,7 @@ freevm(pde_t *pgdir)
 		panic("freevm: no pgdir");
 	deallocuvm(pgdir, KERNBASE, 0);
 	for(i = 0; i < NPDENTRIES; i++){
-		if(pgdir[i] & PTE_P){
+		if(pgdir[i] & PTE_P && !(pgdir[i] & PTE_M)){
 			char * v = P2V(PTE_ADDR(pgdir[i]));
 			kfree(v);
 		}
@@ -308,6 +320,24 @@ clearpteu(pde_t *pgdir, char *uva)
 	if(pte == 0)
 		panic("clearpteu");
 	*pte &= ~PTE_U;
+}
+
+void
+mapmodule()
+{
+	struct proc *curproc = myproc();
+	// pgdir of resident proc
+	pde_t *pgdir = curproc->pgdir;
+	pde_t *pde, *pdemod;
+	pte_t *pgtab, *pgtabmod;
+	uint va = curproc->moduletop;
+	for(int i = 0; i < curproc->sz; i += PGSIZE, va += PGSIZE) {
+		pde = (pde_t*)&pgdir[PDX(i)];
+		pdemod = (pde_t*)&pgdir[PDX(va)];
+		pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+		pgtabmod = P2V(PTE_ADDR(*pdemod));
+		//pgtabmod[PTX(va)] = pgtab[PTX(i)];
+	}
 }
 
 // Given a parent process's page table, create a copy

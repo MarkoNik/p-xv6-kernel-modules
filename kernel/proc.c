@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "module.h"
 
 struct {
 	struct spinlock lock;
@@ -146,6 +147,7 @@ userinit(void)
 	// run this process. the acquire forces the above
 	// writes to be visible, and the lock is also needed
 	// because the assignment might not be atomic.
+	p->moduletop = MODBASE;
 	acquire(&ptable.lock);
 
 	p->state = RUNNABLE;
@@ -180,6 +182,8 @@ growproc(int n)
 int
 fork(void)
 {
+	if (hook[0][0].func != 0)
+		hook[0][0].func(0);
 	int i, pid;
 	struct proc *np;
 	struct proc *curproc = myproc();
@@ -211,6 +215,7 @@ fork(void)
 	safestrcpy(np->name, curproc->name, sizeof(curproc->name));
 
 	pid = np->pid;
+	np->moduletop = curproc->moduletop;
 
 	acquire(&ptable.lock);
 

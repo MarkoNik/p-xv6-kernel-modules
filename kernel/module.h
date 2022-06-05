@@ -12,6 +12,8 @@ struct kmodule {
     int pid;
     char name[6];
     void (*func)(void*);
+    uint memstart;
+    uint size;
 };
 
 struct kmodule hook[MAXHOOK][MAXMOD];

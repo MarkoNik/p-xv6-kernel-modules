@@ -94,17 +94,34 @@ sys_uptime(void)
 int
 sys_addmod(void)
 {
+	struct proc *curproc = myproc();
 	int n;
 	argint(0, &n);
 	struct module *modarr;
 	argptr(1, &modarr, n * sizeof(struct module));
 
+	// fill in functions in hooks, with recalculated virtual address
 	for(int i = 0; i < n; i++) {
-		
+		for (int j = 0; j < MAXMOD; j++) {
+			if (hook[modarr[i].hookID][j].func == 0) {
+				// offset function to proper kvm adr
+				hook[modarr[i].hookID][j].func = (void (*)(void*))((uint)modarr[i].func + curproc->moduletop); 
+				hook[modarr[i].hookID][j].memstart = curproc->moduletop;
+				hook[modarr[i].hookID][j].size = curproc->sz;
+				hook[modarr[i].hookID][j].pid = curproc->pid;
+				memmove(hook[modarr[i].hookID][j].name, modarr[i].name, 6); // copy module name
+				break;
+			} else if (j == MAXMOD - 1) {
+				// hook filled up
+				return -1;
+			}
+		}
 	}
 
-
-
+	// do the mapping in all processes
+	mapmodule();
+	
+	curproc->moduletop += PGROUNDUP(curproc->sz);
 	myproc()->state = RESIDENT;
 	return 0;
 }
