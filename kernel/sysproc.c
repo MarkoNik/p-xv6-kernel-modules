@@ -100,12 +100,22 @@ sys_addmod(void)
 	struct module *modarr;
 	argptr(1, &modarr, n * sizeof(struct module));
 
+
+	// do the mapping
+	mapmodule();
 	// fill in functions in hooks, with recalculated virtual address
 	for(int i = 0; i < n; i++) {
 		for (int j = 0; j < MAXMOD; j++) {
 			if (hook[modarr[i].hookID][j].func == 0) {
 				// offset function to proper kvm adr
-				hook[modarr[i].hookID][j].func = (void (*)(void*))((uint)modarr[i].func + curproc->moduletop); 
+				hook[modarr[i].hookID][j].func = (void (*)(void*))((uint)modarr[i].func + curproc->moduletop);
+				uint x = 0;
+				hook[modarr[i].hookID][j].func((void*)x);
+				// cprintf("%d\n", x);
+				cprintf("%x\n", hook[modarr[i].hookID][j].func);
+				cprintf("?%x\n", curproc->pgdir[PDX(MODBASE)]);
+				cprintf("a: %x\n", *(uint*)(P2V(PTE_ADDR(curproc->pgdir[PDX(MODBASE)]))));
+				// cprintf("??%x\n", curproc->pgdir[PDX(MODBASE)]);
 				hook[modarr[i].hookID][j].memstart = curproc->moduletop;
 				hook[modarr[i].hookID][j].size = curproc->sz;
 				hook[modarr[i].hookID][j].pid = curproc->pid;
@@ -117,9 +127,6 @@ sys_addmod(void)
 			}
 		}
 	}
-
-	// do the mapping in all processes
-	mapmodule();
 	
 	curproc->moduletop += PGROUNDUP(curproc->sz);
 	myproc()->state = RESIDENT;

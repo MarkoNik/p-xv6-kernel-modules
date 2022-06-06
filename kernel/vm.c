@@ -110,7 +110,7 @@ static struct kmap {
 } kmap[] = {
 	{ (void*)KERNBASE, 0,             EXTMEM,    PTE_W}, // I/O space
 	{ (void*)KERNLINK, V2P(KERNLINK), V2P(data), 0},     // kern text+rodata
-	{ (void*)data,     V2P(data),     PHYSTOP,   PTE_W}, // kern data+memory
+	{ (void*)data,     V2P(data),     V2P(MODBASE),   PTE_W}, // kern data+memory
 	{ (void*)DEVSPACE, DEVSPACE,      0,         PTE_W}, // more devices
 };
 
@@ -132,10 +132,6 @@ setupkvm(void)
 			freevm(pgdir);
 			return 0;
 		}
-	// map to allocated pdes for kernel modules
-	for(int i = 0; i < 10; i++) {
-		pgdir[PDX(MODBASE) + i] = V2P(MODBASE + i * PGSIZE * PGSIZE / 4) | PTE_P | PTE_M | PTE_W;
-	}
 	return pgdir;
 }
 
@@ -145,13 +141,12 @@ void
 kvmalloc(void)
 {
 	kpgdir = setupkvm();
- 	// allocate first pdes for kernel modules
-	for(int i = 0; i < 10; i++) {
-		pte_t *pgtab;
-		if((pgtab = (pte_t*)kalloc()) == 0)
-			return 0;
+	pte_t *pgtab;
+	// turn on module flag in pdes
+	for(int i = 0; i < MODPAGES; i++) {
+		pgtab = (pte_t*)kalloc();
 		memset(pgtab, 0, PGSIZE);
-		kpgdir[PDX(MODBASE) + i] = V2P(pgtab) | PTE_P | PTE_M | PTE_W;
+		kpgdir[PDX(MODBASE) + i] = V2P(pgtab) | PTE_P | PTE_W | PTE_M;
 	}
 	switchkvm();
 }
@@ -224,6 +219,14 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 			n = PGSIZE;
 		if(readi(ip, P2V(pa), offset+i, n) != n)
 			return -1;
+	}
+
+	pte_t *pde;
+	for(int i = 0; i < MODPAGES; i++) {
+		if (!(pgdir[PDX(MODBASE) + i] & PTE_M)) {
+			pde = &kpgdir[PDX(MODBASE) + i];
+			pgdir[PDX(MODBASE) + i] = *pde;
+		}
 	}
 	return 0;
 }
@@ -335,8 +338,9 @@ mapmodule()
 		pde = (pde_t*)&pgdir[PDX(i)];
 		pdemod = (pde_t*)&pgdir[PDX(va)];
 		pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
-		pgtabmod = P2V(PTE_ADDR(*pdemod));
-		//pgtabmod[PTX(va)] = pgtab[PTX(i)];
+		pgtabmod = (pte_t*)P2V(PTE_ADDR(*pdemod));
+		// cprintf("rasp:%x %x", *pgtab, *pgtabmod);
+		pgtabmod[PTX(va)] = pgtab[PTX(i)] | PTE_P | PTE_W | PTE_M;
 	}
 }
 

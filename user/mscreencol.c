@@ -2,25 +2,25 @@
 #include "kernel/module.h"
 #include "user.h"
 
-void f(void *x) {
-
+void mod(void *x) {
+    (*((int*)x))++;
+    
+ /*    uint *crt = (uint*)x;
+    crt[0] = 0; */
+   
 }
 
-struct module a[2];
-struct module m, n;
-char *ime1 = "abcde";
-char *ime2 = "aaaaa";
+struct module a[1];
+struct module m;
+char *ime1 = "sccol";
 
 int
 main(void)
 {
-    m.func = &f;
-    n.func = &f;
+    m.func = &mod;
+    m.hookID = KEYIN;
     strcpy(m.name, ime1);
-    strcpy(n.name, ime2);
     a[0] = m;
-    a[1] = n;
-    printf("%d\n", a);
-    addmod(2, a);
+    addmod(1, a);
 	exit();
 }

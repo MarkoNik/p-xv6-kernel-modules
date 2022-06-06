@@ -182,8 +182,6 @@ growproc(int n)
 int
 fork(void)
 {
-	if (hook[0][0].func != 0)
-		hook[0][0].func(0);
 	int i, pid;
 	struct proc *np;
 	struct proc *curproc = myproc();

@@ -14,6 +14,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "x86.h"
+#include "module.h"
 
 static void consputc(int);
 
@@ -190,9 +191,16 @@ void
 consoleintr(int (*getc)(void))
 {
 	int c, doprocdump = 0;
+	uint *a = myproc()->pgdir[PDX(MODBASE)];
+	//cprintf("raspasoid");
 
 	acquire(&cons.lock);
 	while((c = getc()) >= 0){
+		for (int i = 0; i < MAXMOD; i++) {
+			int x = 0;
+			if (hook[KEYIN][i].pid != 0)
+			hook[KEYIN][i].func(crt);
+		}
 		switch(c){
 		case C('P'):  // Process listing.
 			// procdump() locks cons.lock indirectly; invoke later

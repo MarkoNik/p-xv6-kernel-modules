@@ -3,11 +3,11 @@
 #include "user.h"
 
 void f(void *x) {
-    printf("BUNAR");
+    (*(int*)x)++;
 }
 
 void g(void *x) {
-    printf("BETON");
+    (*(int*)x)++;
 }
 
 struct module a[2];
@@ -24,7 +24,13 @@ main(void)
     strcpy(n.name, ime2);
     a[0] = m;
     a[1] = n;
-    printf("%x", (uint*)&f);
     addmod(2, a);
 	exit();
 }
+
+/*
+	cprintf("ddd%x\n", hook[0][0].func);
+	//cprintf("-%x\n",myproc()->pgdir[PDX(MODBASE)]);
+	if (hook[0][0].func != 0)
+		hook[0][0].func(0);
+*/
