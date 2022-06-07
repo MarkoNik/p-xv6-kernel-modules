@@ -13,8 +13,12 @@ struct {
 	struct proc proc[NPROC];
 } ptable;
 
-struct spinlock *getptablock() {
+struct spinlock *getptablock(void) {
 	return &ptable.lock;
+}
+
+struct proc *getprocarr(void) {
+	return ptable.proc;
 }
 
 static struct proc *initproc;
@@ -245,7 +249,9 @@ exit(void)
 	if(curproc->state == RESIDENT) {
 		wakeup1(curproc->parent);
 		sched();
-		panic("resident exit");
+		curproc->parent = initproc;
+		wakeup1(initproc);
+		release(&ptable.lock);
 	}
 	if(curproc == initproc)
 		panic("init exiting");

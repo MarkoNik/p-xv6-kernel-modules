@@ -100,12 +100,15 @@ sys_addmod(void)
 	struct module *modarr;
 	argptr(1, &modarr, n * sizeof(struct module));
 
+	// TODO da li ime postoji
+
+
 	// do the mapping
 	mapmodule();
 	// fill in functions in hooks, with recalculated virtual address
 	for(int i = 0; i < n; i++) {
 		for (int j = 0; j < MAXMOD; j++) {
-			if (hook[modarr[i].hookID][j].func == 0) {
+			if (hook[modarr[i].hookID][j].pid == 0) {
 				// offset function to proper kvm adr
 				hook[modarr[i].hookID][j].func = (void (*)(void*))((uint)modarr[i].func + curproc->moduletop);
 				hook[modarr[i].hookID][j].memstart = curproc->moduletop;
@@ -115,19 +118,80 @@ sys_addmod(void)
 				break;
 			} else if (j == MAXMOD - 1) {
 				// hook filled up
-				return -1;
+				return -2;
 			}
 		}
 	}
 	
-	curproc->moduletop += PGROUNDUP(curproc->sz);
 	acquire(getptablock());
+	// update moduletop in all processes
+	struct proc *p;
+	struct proc *procarr = getprocarr();
+	for(p = procarr; p < &procarr[NPROC]; p++){
+		p->moduletop += PGROUNDUP(curproc->sz);
+	}
+
 	myproc()->state = RESIDENT;
 	return 0;
 }
 
 int sys_rmmod(void)
 {
+	char *name;
+	argptr(0, &name, 6 * sizeof(char));
+	// delete module and find pid of deleted module
+	int pid = -1;
+	struct kmodule *kmod = 0;
+	for(int i = 0; i < MAXHOOK; i++) {
+		for (int j = 0; j < MAXMOD; j++) {
+			if(memcmp(hook[i][j].name, name, 5) == 0) {
+				// if module found, mark deleted (pid = 0)
+				pid = hook[i][j].pid;
+				hook[i][j].pid = 0;
+				kmod = &hook[i][j];
+				break;
+			}
+		}
+	}
+	if(pid == -1) return -1;
+
+	// if there are no modules with this pid anymore, free process with pid
+	{
+		// check if there are more modules with this pid
+		int dead = 1;
+		for(int i = 0; i < MAXHOOK; i++) {
+			for (int j = 0; j < MAXMOD; j++) {
+				if(hook[i][j].pid == pid) {
+					dead = 0;
+				}
+			}
+		}
+		// there are no more
+		if(dead) {
+			// remap function offset
+			for(int i = 0; i < MAXHOOK; i++) {
+				for (int j = 0; j < MAXMOD; j++) {
+					if(hook[i][j].memstart > kmod->memstart) {
+						hook[i][j].func -= kmod->size;
+					}
+				}
+			}
+
+			// find process to free
+			struct proc *p;
+			struct proc *procarr = getprocarr();
+			acquire(getptablock());
+			for(p = procarr; p < &procarr[NPROC]; p++){
+				if(p->pid == pid) {
+					freemodule(kmod);
+					p->state = RUNNABLE;
+					break;
+				}
+			}
+			release(getptablock());
+		}
+	}
+
 	return 0;
 }
 

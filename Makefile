@@ -212,6 +212,7 @@ UPROGS=\
 	$U/_zombie\
 	$U/_pipetest\
 	$U/_writer\
+	$U/_rmmod\
 	$U/_mscreencol\
 	$U/_test\
 

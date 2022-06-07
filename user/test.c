@@ -7,7 +7,7 @@ void f(void *x) {
 }
 
 void g(void *x) {
-    (*(int*)x)+=2;
+    (*(int*)x)--;
 }
 
 struct module a[2];

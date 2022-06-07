@@ -6,6 +6,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "elf.h"
+#include "module.h"
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
@@ -207,11 +208,57 @@ init_modpgs(void) {
 
 void
 copy_modpgs(pde_t *pgdir) {
-	pte_t *pde;
+	pde_t *pde;
 	for(int i = 0; i < MODPAGES; i++) {
 		pde = &kpgdir[PDX(MODBASE) + i];
 		pgdir[PDX(MODBASE) + i] = *pde;
 	}
+}
+
+// map module to kpgdir page tables
+void
+mapmodule()
+{
+	struct proc *curproc = myproc();
+	// pgdir of resident proc
+	pde_t *pgdir = curproc->pgdir;
+	pde_t *pde, *pdemod;
+	pte_t *pgtab, *pgtabmod;
+	uint va = curproc->moduletop;
+	for(int i = 0; i < curproc->sz; i += PGSIZE, va += PGSIZE) {
+		// find pde (page table phys addresses)
+		pde = (pde_t*)&pgdir[PDX(i)];
+		pdemod = (pde_t*)&pgdir[PDX(va)];
+
+		// get pointers to page tables
+		pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+		pgtabmod = (pte_t*)P2V(PTE_ADDR(*pdemod));
+
+		// copy content of page table entry from module to kernel mem
+		pgtabmod[PTX(va)] = pgtab[PTX(i)] | PTE_P | PTE_W | PTE_M;
+	}
+}
+
+// remove module from kpgdir page tables
+void
+freemodule(void *km) {
+	struct kmodule *kmod = (struct kmodule*)km; // ??
+	struct proc *curproc = myproc();
+	pde_t *pgdir = curproc->pgdir;
+	pde_t *pdelow, *pdehigh;
+	pte_t *pgtablow, *pgtabhigh;
+
+	uint *valow = (uint*)kmod->memstart;
+	uint *vahigh = (uint*)(kmod->memstart + kmod->size);
+	for(;vahigh < curproc->moduletop; valow += PGSIZE, vahigh += PGSIZE) {
+		pdelow = (pde_t*)&pgdir[PDX(valow)];
+		pdehigh = (pde_t*)&pgdir[PDX(vahigh)];
+
+		pgtablow = (pte_t*)P2V(PTE_ADDR(*pdelow));
+		pgtabhigh = (pte_t*)P2V(PTE_ADDR(*pdehigh));
+
+		pgtablow[PTX(valow)] = pgtabhigh[PTX(vahigh)];
+	} 
 }
 
 // Load a program segment into pgdir.  addr must be page-aligned
@@ -332,29 +379,6 @@ clearpteu(pde_t *pgdir, char *uva)
 	if(pte == 0)
 		panic("clearpteu");
 	*pte &= ~PTE_U;
-}
-
-void
-mapmodule()
-{
-	struct proc *curproc = myproc();
-	// pgdir of resident proc
-	pde_t *pgdir = curproc->pgdir;
-	pde_t *pde, *pdemod;
-	pte_t *pgtab, *pgtabmod;
-	uint va = curproc->moduletop;
-	for(int i = 0; i < curproc->sz; i += PGSIZE, va += PGSIZE) {
-		// find pde (page table phys addresses)
-		pde = (pde_t*)&pgdir[PDX(i)];
-		pdemod = (pde_t*)&pgdir[PDX(va)];
-
-		// get pointers to page tables
-		pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
-		pgtabmod = (pte_t*)P2V(PTE_ADDR(*pdemod));
-
-		// copy content of page table entry from module to kernel mem
-		pgtabmod[PTX(va)] = pgtab[PTX(i)] | PTE_P | PTE_W | PTE_M;
-	}
 }
 
 // Given a parent process's page table, create a copy
