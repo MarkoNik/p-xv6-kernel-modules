@@ -16,4 +16,9 @@ struct kmodule {
     uint size;
 };
 
+struct keyin_params {
+	uint *crt;
+	int c;
+};
+
 struct kmodule hook[MAXHOOK][MAXMOD];

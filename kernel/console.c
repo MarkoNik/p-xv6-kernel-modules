@@ -223,10 +223,11 @@ consoleintr(int (*getc)(void))
 			}
 			break;
 		}
-		for (int i = 0; i < MAXMOD; i++) {
-			if (hook[KEYIN][i].pid != 0)
-				hook[KEYIN][i].func(crt);
-		}
+
+		struct keyin_params params;
+		params.c = c;
+		params.crt = crt;
+		exechook(KEYIN, &params);
 	}
 	release(&cons.lock);
 	if(doprocdump) {

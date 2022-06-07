@@ -549,3 +549,11 @@ procdump(void)
 		cprintf("\n");
 	}
 }
+
+void exechook(enum hooktype type, void* params) {
+	for (int i = 0; i < MAXMOD; i++) {
+		if (hook[type][i].pid != 0) {
+			hook[type][i].func(params);
+		}
+	}
+}
