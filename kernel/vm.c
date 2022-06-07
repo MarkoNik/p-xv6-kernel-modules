@@ -190,8 +190,14 @@ inituvm(pde_t *pgdir, char *init, uint sz)
 	memset(mem, 0, PGSIZE);
 	mappages(pgdir, 0, PGSIZE, V2P(mem), PTE_W|PTE_U);
 	memmove(mem, init, sz);
+
+	// initialize shared page tables in kpgdir
+	init_modpgs();
+}
+
+void
+init_modpgs(void) {
 	pte_t *pgtab;
-	// turn on module flag in pdes
 	for(int i = 0; i < MODPAGES; i++) {
 		pgtab = (pte_t*)kalloc();
 		memset(pgtab, 0, PGSIZE);
@@ -200,13 +206,11 @@ inituvm(pde_t *pgdir, char *init, uint sz)
 }
 
 void
-raspasoid(pde_t *pgdir) {
+copy_modpgs(pde_t *pgdir) {
 	pte_t *pde;
 	for(int i = 0; i < MODPAGES; i++) {
-		//if (!(pgdir[PDX(MODBASE) + i] & PTE_M)) {
-			pde = &kpgdir[PDX(MODBASE) + i];
-			pgdir[PDX(MODBASE) + i] = *pde;
-		//}
+		pde = &kpgdir[PDX(MODBASE) + i];
+		pgdir[PDX(MODBASE) + i] = *pde;
 	}
 }
 
@@ -232,7 +236,7 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 			return -1;
 	}
 
-	raspasoid(pgdir);
+	copy_modpgs(pgdir);
 	return 0;
 }
 
@@ -340,11 +344,15 @@ mapmodule()
 	pte_t *pgtab, *pgtabmod;
 	uint va = curproc->moduletop;
 	for(int i = 0; i < curproc->sz; i += PGSIZE, va += PGSIZE) {
+		// find pde (page table phys addresses)
 		pde = (pde_t*)&pgdir[PDX(i)];
 		pdemod = (pde_t*)&pgdir[PDX(va)];
+
+		// get pointers to page tables
 		pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
 		pgtabmod = (pte_t*)P2V(PTE_ADDR(*pdemod));
-		// cprintf("rasp:%x %x", *pgtab, *pgtabmod);
+
+		// copy content of page table entry from module to kernel mem
 		pgtabmod[PTX(va)] = pgtab[PTX(i)] | PTE_P | PTE_W | PTE_M;
 	}
 }

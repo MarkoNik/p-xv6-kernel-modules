@@ -61,6 +61,7 @@ kfree(char *v)
 {
 	struct run *r;
 
+	// only free pages up to MODBASE
 	if((uint)v % PGSIZE || v < end || v >= MODBASE)
 		panic("kfree");
 

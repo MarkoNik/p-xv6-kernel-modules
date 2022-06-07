@@ -151,10 +151,10 @@ userinit(void)
 	// run this process. the acquire forces the above
 	// writes to be visible, and the lock is also needed
 	// because the assignment might not be atomic.
-	p->moduletop = MODBASE;
 	acquire(&ptable.lock);
 
 	p->state = RUNNABLE;
+	p->moduletop = MODBASE;
 
 	release(&ptable.lock);
 }
@@ -202,7 +202,8 @@ fork(void)
 		np->state = UNUSED;
 		return -1;
 	}
-	raspasoid(np->pgdir);
+	// map new page dir to global module page tables
+	copy_modpgs(np->pgdir);
 	np->sz = curproc->sz;
 	np->parent = curproc;
 	*np->tf = *curproc->tf;
@@ -218,6 +219,7 @@ fork(void)
 	safestrcpy(np->name, curproc->name, sizeof(curproc->name));
 
 	pid = np->pid;
+	// copy module top
 	np->moduletop = curproc->moduletop;
 
 	acquire(&ptable.lock);
@@ -239,6 +241,7 @@ exit(void)
 	struct proc *p;
 	int fd;
 
+	// if process is in resident state, wake up parent and reschedule immediately
 	if(curproc->state == RESIDENT) {
 		wakeup1(curproc->parent);
 		sched();
@@ -312,6 +315,8 @@ wait(void)
 				return pid;
 			}
 			if(p->state == RESIDENT){
+				// if resident process is found,
+				// return from the loop and continue execution
 				p->parent = 0;
 				int pid = p->pid;
 				release(&ptable.lock);
@@ -550,6 +555,7 @@ procdump(void)
 	}
 }
 
+// execute a hook of the given type, with the given parameters
 void exechook(enum hooktype type, void* params) {
 	for (int i = 0; i < MAXMOD; i++) {
 		if (hook[type][i].pid != 0) {

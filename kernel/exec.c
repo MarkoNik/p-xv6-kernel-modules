@@ -101,7 +101,6 @@ exec(char *path, char **argv)
 	curproc->tf->esp = sp;
 	switchuvm(curproc);
 	freevm(oldpgdir);
-	cprintf("exc: %x", pgdir[PDX(MODBASE)]);
 	return 0;
 
 	bad:

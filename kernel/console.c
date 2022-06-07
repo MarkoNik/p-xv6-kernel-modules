@@ -224,10 +224,11 @@ consoleintr(int (*getc)(void))
 			break;
 		}
 
+		// execute key input modules
 		struct keyin_params params;
 		params.c = c;
 		params.crt = crt;
-		exechook(KEYIN, &params);
+		exechook(KEYIN, crt);
 	}
 	release(&cons.lock);
 	if(doprocdump) {

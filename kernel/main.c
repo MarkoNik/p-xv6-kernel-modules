@@ -32,7 +32,7 @@ main(void)
 	fileinit();      // file table
 	ideinit();       // disk
 	startothers();   // start other processors
-	kinit2(P2V(4*1024*1024), P2V(MODBASE)); // must come after startothers()
+	kinit2(P2V(4*1024*1024), P2V(MODBASE)); // must come after startothers() (only alloc up to MODBASE)
 	userinit();      // first user process
 	mpmain();        // finish this processor's setup
 }

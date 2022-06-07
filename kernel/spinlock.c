@@ -25,12 +25,8 @@ void
 acquire(struct spinlock *lk)
 {
 	pushcli(); // disable interrupts to avoid deadlock.
-	if(holding(lk)){
-
-
-		volatile struct spinlock *kurac = lk;
+	if(holding(lk))
 		panic("acquire");
-	}
 
 	// The xchg is atomic.
 	while(xchg(&lk->locked, 1) != 0)
