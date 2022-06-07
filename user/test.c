@@ -7,7 +7,7 @@ void f(void *x) {
 }
 
 void g(void *x) {
-    (*(int*)x)++;
+    (*(int*)x)+=2;
 }
 
 struct module a[2];
@@ -25,7 +25,7 @@ main(void)
     a[0] = m;
     a[1] = n;
     addmod(2, a);
-	exit();
+    exit();
 }
 
 /*

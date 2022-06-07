@@ -58,3 +58,5 @@ struct proc {
 //   expandable heap
 
 void mapmodule(void);
+
+struct spinlock *getptablock();

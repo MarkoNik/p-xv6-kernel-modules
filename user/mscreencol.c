@@ -3,10 +3,10 @@
 #include "user.h"
 
 void mod(void *x) {
-    (*((int*)x))++;
+   // (*((int*)x))++;
     
- /*    uint *crt = (uint*)x;
-    crt[0] = 0; */
+    uint *crt = (uint*)x;
+    crt[0] = 0; 
    
 }
 

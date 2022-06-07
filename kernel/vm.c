@@ -141,13 +141,6 @@ void
 kvmalloc(void)
 {
 	kpgdir = setupkvm();
-	pte_t *pgtab;
-	// turn on module flag in pdes
-	for(int i = 0; i < MODPAGES; i++) {
-		pgtab = (pte_t*)kalloc();
-		memset(pgtab, 0, PGSIZE);
-		kpgdir[PDX(MODBASE) + i] = V2P(pgtab) | PTE_P | PTE_W | PTE_M;
-	}
 	switchkvm();
 }
 
@@ -197,6 +190,24 @@ inituvm(pde_t *pgdir, char *init, uint sz)
 	memset(mem, 0, PGSIZE);
 	mappages(pgdir, 0, PGSIZE, V2P(mem), PTE_W|PTE_U);
 	memmove(mem, init, sz);
+	pte_t *pgtab;
+	// turn on module flag in pdes
+	for(int i = 0; i < MODPAGES; i++) {
+		pgtab = (pte_t*)kalloc();
+		memset(pgtab, 0, PGSIZE);
+		kpgdir[PDX(MODBASE) + i] = V2P(pgtab) | PTE_P | PTE_W | PTE_M;
+	}
+}
+
+void
+raspasoid(pde_t *pgdir) {
+	pte_t *pde;
+	for(int i = 0; i < MODPAGES; i++) {
+		//if (!(pgdir[PDX(MODBASE) + i] & PTE_M)) {
+			pde = &kpgdir[PDX(MODBASE) + i];
+			pgdir[PDX(MODBASE) + i] = *pde;
+		//}
+	}
 }
 
 // Load a program segment into pgdir.  addr must be page-aligned
@@ -221,13 +232,7 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 			return -1;
 	}
 
-	pte_t *pde;
-	for(int i = 0; i < MODPAGES; i++) {
-		if (!(pgdir[PDX(MODBASE) + i] & PTE_M)) {
-			pde = &kpgdir[PDX(MODBASE) + i];
-			pgdir[PDX(MODBASE) + i] = *pde;
-		}
-	}
+	raspasoid(pgdir);
 	return 0;
 }
 

@@ -13,6 +13,10 @@ struct {
 	struct proc proc[NPROC];
 } ptable;
 
+struct spinlock *getptablock() {
+	return &ptable.lock;
+}
+
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -198,6 +202,7 @@ fork(void)
 		np->state = UNUSED;
 		return -1;
 	}
+	raspasoid(np->pgdir);
 	np->sz = curproc->sz;
 	np->parent = curproc;
 	*np->tf = *curproc->tf;
@@ -234,6 +239,11 @@ exit(void)
 	struct proc *p;
 	int fd;
 
+	if(curproc->state == RESIDENT) {
+		wakeup1(curproc->parent);
+		sched();
+		panic("resident exit");
+	}
 	if(curproc == initproc)
 		panic("init exiting");
 
@@ -302,7 +312,10 @@ wait(void)
 				return pid;
 			}
 			if(p->state == RESIDENT){
-				return -1;
+				p->parent = 0;
+				int pid = p->pid;
+				release(&ptable.lock);
+				return pid;
 			}
 		}
 
@@ -512,7 +525,8 @@ procdump(void)
 	[SLEEPING]  "sleep ",
 	[RUNNABLE]  "runble",
 	[RUNNING]   "run   ",
-	[ZOMBIE]    "zombie"
+	[ZOMBIE]    "zombie",
+	[RESIDENT]  "resident",
 	};
 	int i;
 	struct proc *p;
