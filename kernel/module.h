@@ -5,13 +5,13 @@ enum hooktype {KEYIN, INBUF, ENC, DEC, PROC, MAXHOOK}; // add new before MAXHOOK
 struct module {
     enum hooktype hookID;
     char name[6];
-    void (*func)(void*);
+    void (*func)(void*, uint);
 };
 
 struct kmodule {
     int pid;
     char name[6];
-    void (*func)(void*);
+    void (*func)(void*, uint);
     uint memstart; // first virtual address of kernel mapped module
     uint size; // size of module
 };
@@ -20,6 +20,7 @@ struct kmodule {
 struct keyin_params {
 	ushort *crt;
 	int c;
+    uint offset;
 };
 
 // hook position matrix

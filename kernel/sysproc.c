@@ -173,6 +173,7 @@ int sys_rmmod(void)
 				for (int j = 0; j < MAXMOD; j++) {
 					if(hook[i][j].memstart > kmod->memstart) {
 						hook[i][j].func -= kmod->size;
+						hook[i][j].memstart -= kmod->size;
 					}
 				}
 			}

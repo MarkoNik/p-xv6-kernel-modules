@@ -132,3 +132,12 @@ memmove(void *vdst, const void *vsrc, int n)
 		*dst++ = *src++;
 	return vdst;
 }
+
+// returns a pointer to global variable in a kernel module
+// should be called every time a module uses a global variable
+// need to cast to proper type afterwards
+// args: pointer to global variable, offset sent in hook call
+void* 
+globl(void* pt, uint off) {
+	return (void*)((uint)pt + off);
+}
