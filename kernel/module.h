@@ -18,7 +18,7 @@ struct kmodule {
 
 // structures representing parameters for modules
 struct keyin_params {
-	uint *crt;
+	ushort *crt;
 	int c;
 };
 

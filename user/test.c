@@ -27,10 +27,3 @@ main(void)
     addmod(2, a);
     exit();
 }
-
-/*
-	cprintf("ddd%x\n", hook[0][0].func);
-	//cprintf("-%x\n",myproc()->pgdir[PDX(MODBASE)]);
-	if (hook[0][0].func != 0)
-		hook[0][0].func(0);
-*/
