@@ -213,7 +213,8 @@ UPROGS=\
 	$U/_pipetest\
 	$U/_writer\
 	$U/_rmmod\
-	$U/_mscreencol\
+	$U/_sccol\
+	$U/_schis\
 	$U/_test\
 
 fs.img: $T/mkfs README $(UPROGS)

@@ -130,6 +130,12 @@ static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 static void
 cgaputc(int c)
 {
+	// execute console output modules
+	struct consout_params params;
+	params.c = &c;
+	params.crt = crt;
+	exechook(CONSOUT, &params);
+
 	int pos;
 
 	// Cursor position: col + 80*row.
@@ -137,6 +143,9 @@ cgaputc(int c)
 	pos = inb(CRTPORT+1) << 8;
 	outb(CRTPORT, 15);
 	pos |= inb(CRTPORT+1);
+
+	// reserve pgup and pgdown, do nothing
+	if(c == 230 || c == 231) goto skip;
 
 	if(c == '\n')
 		pos += 80 - pos%80;
@@ -153,7 +162,7 @@ cgaputc(int c)
 		pos -= 80;
 		memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
 	}
-
+skip:
 	outb(CRTPORT, 14);
 	outb(CRTPORT+1, pos>>8);
 	outb(CRTPORT, 15);
@@ -215,6 +224,11 @@ consoleintr(int (*getc)(void))
 			if(c != 0 && input.e-input.r < INPUT_BUF){
 				c = (c == '\r') ? '\n' : c;
 				input.buf[input.e++ % INPUT_BUF] = c;
+				// execute key input modules
+				struct keyin_params params;
+				params.c = c;
+				params.crt = crt;
+				exechook(KEYIN, &params);
 				consputc(c);
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
 					input.w = input.e;
@@ -223,11 +237,6 @@ consoleintr(int (*getc)(void))
 			}
 			break;
 		}
-		// execute key input modules
-		struct keyin_params params;
-		params.c = c;
-		params.crt = crt;
-		exechook(KEYIN, &params);
 	}
 	release(&cons.lock);
 	if(doprocdump) {

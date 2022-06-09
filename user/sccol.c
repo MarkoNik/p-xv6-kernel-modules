@@ -2,8 +2,6 @@
 #include "kernel/module.h"
 #include "user.h"
 
-struct module mod[1];
-char *name = "sccol";
 ushort color;
 
 // set screen color
@@ -49,9 +47,17 @@ main(void)
    
 
     // prep module
+    struct module mod[1];
     mod[0].func = &func;
     mod[0].hookID = KEYIN;
+    char name[6] = "sccol";
     strcpy(mod[0].name, name);
-    addmod(1, mod);
+    int err = addmod(1,mod);
+    if (err == -1)
+        printf("module already exists\n");
+    if (err == -2) 
+        printf("hook position filled up\n");
+    if (err == -3)
+        printf("wrong hook identifier\n");
 	exit();
 }

@@ -248,15 +248,14 @@ freemodule(void *km) {
 	pde_t *pdelow, *pdehigh;
 	pte_t *pgtablow, *pgtabhigh;
 
-	uint *valow = (uint*)kmod->memstart;
-	uint *vahigh = (uint*)(kmod->memstart + kmod->size);
+	char *valow = (char*)kmod->memstart;
+	char *vahigh = (char*)(kmod->memstart + kmod->size);
 	for(;vahigh < curproc->moduletop; valow += PGSIZE, vahigh += PGSIZE) {
 		pdelow = (pde_t*)&pgdir[PDX(valow)];
 		pdehigh = (pde_t*)&pgdir[PDX(vahigh)];
 
 		pgtablow = (pte_t*)P2V(PTE_ADDR(*pdelow));
 		pgtabhigh = (pte_t*)P2V(PTE_ADDR(*pdehigh));
-
 		pgtablow[PTX(valow)] = pgtabhigh[PTX(vahigh)];
 	} 
 }

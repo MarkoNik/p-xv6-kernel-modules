@@ -100,8 +100,18 @@ sys_addmod(void)
 	struct module *modarr;
 	argptr(1, &modarr, n * sizeof(struct module));
 
-	// TODO da li ime postoji
+	if(modarr->hookID < 0 || modarr->hookID > MAXHOOK) {
+		return -3;
+	}
 
+	// check if name already exists
+	for(int i = 0; i < MAXHOOK; i++) {
+		for (int j = 0; j < MAXMOD; j++) {
+			if(hook[i][j].pid && memcmp(hook[i][j].name, modarr->name, 5) == 0) {
+				return -1;
+			}
+		}
+	}
 
 	// do the mapping
 	mapmodule();
@@ -144,11 +154,12 @@ int sys_rmmod(void)
 	struct kmodule *kmod = 0;
 	for(int i = 0; i < MAXHOOK; i++) {
 		for (int j = 0; j < MAXMOD; j++) {
-			if(memcmp(hook[i][j].name, name, 5) == 0) {
+			if(hook[i][j].pid && memcmp(hook[i][j].name, name, 5) == 0) {
 				// if module found, mark deleted (pid = 0)
 				pid = hook[i][j].pid;
 				hook[i][j].pid = 0;
 				kmod = &hook[i][j];
+				// TODO move back all modules by 1 in this hook
 				break;
 			}
 		}
@@ -168,16 +179,6 @@ int sys_rmmod(void)
 		}
 		// there are no more
 		if(dead) {
-			// remap function offset
-			for(int i = 0; i < MAXHOOK; i++) {
-				for (int j = 0; j < MAXMOD; j++) {
-					if(hook[i][j].memstart > kmod->memstart) {
-						hook[i][j].func -= kmod->size;
-						hook[i][j].memstart -= kmod->size;
-					}
-				}
-			}
-
 			// find process to free
 			struct proc *p;
 			struct proc *procarr = getprocarr();
@@ -187,6 +188,18 @@ int sys_rmmod(void)
 					freemodule(kmod);
 					p->state = RUNNABLE;
 					break;
+				}
+			}
+			for(p = procarr; p < &procarr[NPROC]; p++){
+				p->moduletop -= kmod->size;
+			}
+			// remap function offset
+			for(int i = 0; i < MAXHOOK; i++) {
+				for (int j = 0; j < MAXMOD; j++) {
+					if(hook[i][j].memstart > kmod->memstart) {
+						hook[i][j].func -= kmod->size;
+						hook[i][j].memstart -= kmod->size;
+					}
 				}
 			}
 			release(getptablock());
