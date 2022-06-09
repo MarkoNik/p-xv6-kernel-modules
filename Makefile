@@ -215,6 +215,7 @@ UPROGS=\
 	$U/_rmmod\
 	$U/_sccol\
 	$U/_schis\
+	$U/_flenc\
 	$U/_test\
 
 fs.img: $T/mkfs README $(UPROGS)

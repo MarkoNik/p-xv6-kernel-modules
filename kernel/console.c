@@ -16,8 +16,6 @@
 #include "x86.h"
 #include "module.h"
 
-static void consputc(int);
-
 static int panicked = 0;
 
 static struct {
@@ -224,11 +222,6 @@ consoleintr(int (*getc)(void))
 			if(c != 0 && input.e-input.r < INPUT_BUF){
 				c = (c == '\r') ? '\n' : c;
 				input.buf[input.e++ % INPUT_BUF] = c;
-				// execute key input modules
-				struct keyin_params params;
-				params.c = c;
-				params.crt = crt;
-				exechook(KEYIN, &params);
 				consputc(c);
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
 					input.w = input.e;

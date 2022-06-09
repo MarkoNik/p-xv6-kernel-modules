@@ -3,7 +3,9 @@
         "fcntl.h": "c",
         "types.h": "c",
         "memlayout.h": "c",
-        "module.h": "c"
+        "module.h": "c",
+        "typeinfo": "c",
+        "defs.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -15,6 +15,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "module.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -75,7 +76,19 @@ sys_read(void)
 
 	if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
 		return -1;
-	return fileread(f, p, n);
+	int err = fileread(f, p, n);
+
+	// execute file decrypt
+	ilock(f->ip);
+	struct dat_params params;
+	params.inum = f->ip->inum;
+	params.n = n;
+	params.src = p;
+	params.consputc = &consputc;
+	if(f->ip->type == T_FILE)
+		exechook(DEC, &params);
+	iunlock(f->ip);
+	return err;
 }
 
 int

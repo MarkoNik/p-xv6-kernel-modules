@@ -23,10 +23,18 @@ struct kmodule hook[MAXHOOK][MAXMOD];
 // structures representing parameters for modules
 struct keyin_params {
 	ushort *crt;
-	int c;
+	int *c;
 };
 
 struct consout_params {
     ushort *crt;
     int *c;
+};
+
+struct dat_params {
+    uint inum;
+    char *src;
+    uint off;
+    uint n;
+    void (*consputc)(int);
 };

@@ -139,5 +139,5 @@ memmove(void *vdst, const void *vsrc, int n)
 // args: pointer to global variable, offset sent in hook call
 void* 
 globl(void* pt, uint off) {
-	return (void*)((uint)pt + off);
+	return (void*)((char*)pt + off);
 }

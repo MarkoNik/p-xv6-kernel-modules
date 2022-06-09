@@ -98,7 +98,7 @@ sys_addmod(void)
 	int n;
 	argint(0, &n);
 	struct module *modarr;
-	argptr(1, &modarr, n * sizeof(struct module));
+	argptr(1, (char**)&modarr, n * sizeof(struct module));
 
 	if(modarr->hookID < 0 || modarr->hookID > MAXHOOK) {
 		return -3;

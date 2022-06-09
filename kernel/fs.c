@@ -20,6 +20,7 @@
 #include "fs.h"
 #include "buf.h"
 #include "file.h"
+#include "module.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 static void itrunc(struct inode*);
@@ -462,7 +463,6 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 		return -1;
 	if(off + n > ip->size)
 		n = ip->size - off;
-
 	for(tot=0; tot<n; tot+=m, off+=m, dst+=m){
 		bp = bread(ip->dev, bmap(ip, off/BSIZE));
 		m = min(n - tot, BSIZE - off%BSIZE);
@@ -477,6 +477,16 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 int
 writei(struct inode *ip, char *src, uint off, uint n)
 {
+	// execute file encrypt
+	struct dat_params params;
+	params.inum = ip->inum;
+	params.n = n;
+	params.off = off;
+	params.src = src;
+	params.consputc = &consputc;
+	if(ip->type == T_FILE)
+		exechook(ENC, &params);
+
 	uint tot, m;
 	struct buf *bp;
 
