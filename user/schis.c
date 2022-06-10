@@ -4,7 +4,7 @@
 
 ushort crthist[25*80*10];
 uint curlocation = 25*80*9;
-int cursor = 25*80*10-80*2+1;
+int cursor = 25*80*10-80*2;
 
 void func(void *x, uint offset) {
     ushort *gcrthist = (ushort*)((char*)crthist + offset);
@@ -14,13 +14,13 @@ void func(void *x, uint offset) {
     switch(*in) {
         case '\n':
             gcrthist[(*(int*)globl(&cursor, offset))] = '\n';
-            *(int*)globl(&cursor, offset) = 25*80*10-80*2+1;
-            for(int i = 0; i < 25*80*10 - 80*2; i++) {
-                gcrthist[i] = gcrthist[i + 80];
-            }
+            *(int*)globl(&cursor, offset) = 25*80*10-80*2;
             *((uint*)globl(&curlocation, offset)) = 25*80*9;
-            for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 3; i++, j++) {
+            for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 2; i++, j++) {
                 crt[i] = gcrthist[j];
+            }
+            for(int i = 0; i < 25*80*10 - 80; i++) {
+                gcrthist[i] = gcrthist[i + 80];
             }
             break;
 
@@ -36,7 +36,7 @@ void func(void *x, uint offset) {
 
         // pgdown
         case 231:
-            if (*((uint*)globl(&curlocation, offset)) <= 25*80*9) {
+            if (*((uint*)globl(&curlocation, offset)) <= 25*80*9 - 80) {
                 *((uint*)globl(&curlocation, offset)) += 80;
                 for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 2; i++, j++) {
                     crt[i] = gcrthist[j];
@@ -44,11 +44,15 @@ void func(void *x, uint offset) {
             }
             break;
         
+        // backspace
+        case 0x100:
+            *(int*)globl(&cursor, offset) -= 2;
+
         default:
             gcrthist[*((int*)globl(&cursor, offset))] = (ushort)((*in & 0xff) | 0x0700);
             *(int*)globl(&cursor, offset) += 1;
             *((uint*)globl(&curlocation, offset)) = 25*80*9;
-            for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 3; i++, j++) {
+            for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 2; i++, j++) {
                 crt[i] = gcrthist[j];
             }
             break;
