@@ -29,9 +29,9 @@ void enc(void *x, uint offset) {
     for(int i = 0; i < j; i++) {
         params->src[i] = gbuf[i];
     }
-    *params->n = j;
     if(gzipped_inum[params->inum] == 0)
         gzipped_inum[params->inum] = *params->n;
+    *params->n = j;
 }
 
 void dec(void *x, uint offset) {
