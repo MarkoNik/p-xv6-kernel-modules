@@ -71,6 +71,7 @@ void func(void *x, uint offset) {
             break;
 
         case '\n':
+            *(int*)(globl(&pos, offset)) = 99;
             break;
 
         default:
