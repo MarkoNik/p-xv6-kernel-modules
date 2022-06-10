@@ -161,7 +161,6 @@ cgaputc(int c)
 		memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
 	}
 
-	// TODO PREMESTI U CONSOLEINTR
 skip:
 	outb(CRTPORT, 14);
 	outb(CRTPORT+1, pos>>8);
@@ -202,6 +201,8 @@ consoleintr(int (*getc)(void))
 	int c, doprocdump = 0;
 	acquire(&cons.lock);
 	while((c = getc()) >= 0){
+		// reserve pgup and pgdown, do nothing
+		if(c == 230 || c == 231) goto skip;
 		switch(c){
 		case C('P'):  // Process listing.
 			// procdump() locks cons.lock indirectly; invoke later
@@ -224,6 +225,7 @@ consoleintr(int (*getc)(void))
 			if(c != 0 && input.e-input.r < INPUT_BUF){
 				c = (c == '\r') ? '\n' : c;
 				input.buf[input.e++ % INPUT_BUF] = c;
+				skip:;
 				consputc(c);
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
 					input.w = input.e;
