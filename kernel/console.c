@@ -201,8 +201,23 @@ consoleintr(int (*getc)(void))
 	int c, doprocdump = 0;
 	acquire(&cons.lock);
 	while((c = getc()) >= 0){
+		struct keyin_params params;
+		params.key = c;
 		// reserve pgup and pgdown, do nothing
 		if(c == 230 || c == 231) goto skip;
+
+		// execute console output modules
+		params.crt = crt;
+		params.buf = input.buf;
+		params.e = &input.e;
+		params.r = &input.r;
+		params.w = &input.w;
+		params.consputc = &consputc;
+		exechook(KEYIN, &params);
+
+		// reserve arrow up and arrow down
+		if(c == 0xE2 || c == 0xE3) goto skip2;
+
 		switch(c){
 		case C('P'):  // Process listing.
 			// procdump() locks cons.lock indirectly; invoke later
@@ -228,12 +243,21 @@ consoleintr(int (*getc)(void))
 				skip:;
 				consputc(c);
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
+					// execute console output modules
+					// struct keyin_params params;
+					// params.buf = input.buf;
+					// params.e = input.e;
+					// params.r = input.r;
+					// params.w = input.w;
+					exechook(ENTER, 0);
+
 					input.w = input.e;
 					wakeup(&input.r);
 				}
 			}
 			break;
 		}
+		skip2:;
 	}
 	release(&cons.lock);
 	if(doprocdump) {

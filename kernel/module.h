@@ -1,6 +1,6 @@
 #define MAXMOD 10 // maximum number of modules per hook
 
-enum hooktype {KEYIN, INBUF, ENC, DEC, PROC, CONSOUT, RES, NICE, MAXHOOK}; // add new before MAXHOOK
+enum hooktype {KEYIN, INBUF, ENC, DEC, PROC, CONSOUT, RES, NICE, ENTER, MAXHOOK}; // add new before MAXHOOK
 
 struct module {
     enum hooktype hookID;
@@ -22,9 +22,13 @@ struct kmodule hook[MAXHOOK][MAXMOD];
 
 // structures representing parameters for modules
 struct keyin_params {
-	ushort *crt;
-	int *c;
-    
+    ushort *crt;
+	char *buf;
+	uint *r;  // Read index
+	uint *w;  // Write index
+	uint *e;  // Edit index
+    void (*consputc)(int);
+    int key;
 };
 
 struct consout_params {

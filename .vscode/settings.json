@@ -7,7 +7,8 @@
         "typeinfo": "c",
         "defs.h": "c",
         "param.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "user.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

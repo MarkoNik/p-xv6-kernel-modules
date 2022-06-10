@@ -7,8 +7,8 @@ ushort color;
 // set screen color
 void func(void *x, uint offset) {
     struct keyin_params *params = (struct keyin_params*)x;
-    int *in = params->c;
-    if(*in == '\n') {
+    int in = params->key;
+    if(in == '\n') {
         ushort *crt = params->crt;
         for(int i = 0; i < 25; i++) {
             for(int j = 0; j < 80; j++) {
@@ -49,7 +49,7 @@ main(void)
     // prep module
     struct module mod[1];
     mod[0].func = &func;
-    mod[0].hookID = CONSOUT;
+    mod[0].hookID = KEYIN;
     char name[6] = "sccol";
     strcpy(mod[0].name, name);
     int err = addmod(1,mod);
