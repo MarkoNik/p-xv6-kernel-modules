@@ -220,6 +220,7 @@ UPROGS=\
 	$U/_prsch\
 	$U/_test\
 	$U/_nice\
+	$U/_zombie2\
 
 fs.img: $T/mkfs README $(UPROGS)
 	$T/mkfs fs.img README $(UPROGS)

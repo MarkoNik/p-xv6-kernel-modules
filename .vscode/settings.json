@@ -6,7 +6,8 @@
         "module.h": "c",
         "typeinfo": "c",
         "defs.h": "c",
-        "param.h": "c"
+        "param.h": "c",
+        "stat.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

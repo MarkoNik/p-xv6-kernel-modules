@@ -3,7 +3,7 @@
 #include "user.h"
 
 ushort crthist[25*80*10];
-uint curlocation = 25*80*9 + 80;
+uint curlocation = 25*80*9;
 int cursor = 25*80*10-80*2+1;
 
 void func(void *x, uint offset) {
@@ -18,7 +18,7 @@ void func(void *x, uint offset) {
             for(int i = 0; i < 25*80*10 - 80*2; i++) {
                 gcrthist[i] = gcrthist[i + 80];
             }
-            *((uint*)globl(&curlocation, offset)) = 25*80*9 + 80;
+            *((uint*)globl(&curlocation, offset)) = 25*80*9;
             for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 3; i++, j++) {
                 crt[i] = gcrthist[j];
             }
@@ -28,7 +28,7 @@ void func(void *x, uint offset) {
         case 230:
             if (*((uint*)globl(&curlocation, offset)) >= 80) {
                 *((uint*)globl(&curlocation, offset)) -= 80;
-                for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 3; i++, j++) {
+                for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 2; i++, j++) {
                     crt[i] = gcrthist[j];
                 }
             }
@@ -38,7 +38,7 @@ void func(void *x, uint offset) {
         case 231:
             if (*((uint*)globl(&curlocation, offset)) <= 25*80*9) {
                 *((uint*)globl(&curlocation, offset)) += 80;
-                for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 3; i++, j++) {
+                for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 2; i++, j++) {
                     crt[i] = gcrthist[j];
                 }
             }
@@ -47,7 +47,7 @@ void func(void *x, uint offset) {
         default:
             gcrthist[*((int*)globl(&cursor, offset))] = (ushort)((*in & 0xff) | 0x0700);
             *(int*)globl(&cursor, offset) += 1;
-            *((uint*)globl(&curlocation, offset)) = 25*80*9+ 80;
+            *((uint*)globl(&curlocation, offset)) = 25*80*9;
             for(uint i = 0, j = *((uint*)globl(&curlocation, offset)); i < 25*80 - 80 * 3; i++, j++) {
                 crt[i] = gcrthist[j];
             }
