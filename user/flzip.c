@@ -10,11 +10,10 @@ void enc(void *x, uint offset) {
     uint *gzipped_inum = (uint*)((char*)zipped_inum + offset);
     char *gbuf = (char*)(buf + offset);
     struct dat_params *params = (struct dat_params*)x;
-    // TODO POPRAVI COUNT
     char count = '0';
     int j = 0;
     for(int i = 1; i < *params->n; i++) {
-        if(params->src[i] != params->src[i - 1] || count == *(char*)globl(comp_param, offset)) {
+        if(params->src[i] != params->src[i - 1] || count + 1 == *(char*)globl(&comp_param, offset)) {
             gbuf[j++] = params->src[i - 1];
             gbuf[j++] = count + 1;
             count = '0';
