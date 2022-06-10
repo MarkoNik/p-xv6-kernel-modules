@@ -5,7 +5,8 @@
         "memlayout.h": "c",
         "module.h": "c",
         "typeinfo": "c",
-        "defs.h": "c"
+        "defs.h": "c",
+        "param.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

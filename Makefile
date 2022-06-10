@@ -217,7 +217,9 @@ UPROGS=\
 	$U/_schis\
 	$U/_flenc\
 	$U/_flzip\
+	$U/_prsch\
 	$U/_test\
+	$U/_nice\
 
 fs.img: $T/mkfs README $(UPROGS)
 	$T/mkfs fs.img README $(UPROGS)

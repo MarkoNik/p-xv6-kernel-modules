@@ -159,7 +159,8 @@ int sys_rmmod(void)
 				pid = hook[i][j].pid;
 				hook[i][j].pid = 0;
 				kmod = &hook[i][j];
-				// TODO move back all modules by 1 in this hook
+				// move back all modules by 1 in this hook
+				for(j; j < MAXMOD - 1; j++) hook[i][j] = hook[i][j+1];
 				break;
 			}
 		}
@@ -211,5 +212,14 @@ int sys_rmmod(void)
 
 int sys_nice(void)
 {
+	int pid, nice;
+	argint(0, &pid);
+	argint(1, &nice);
+	if(nice < 0) return -1;
+	struct nice_params params;
+	params.nice = nice;
+	params.pid = pid;
+	// execute nice hook
+	exechook(NICE, &params);
 	return 0;
 }
