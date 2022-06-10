@@ -364,7 +364,6 @@ scheduler(void)
 		for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 			if(p->state != RUNNABLE)
 				continue;
-
 			// execute priosched hook
 			struct proc_params params;
 			params.procarr = (void*)ptable.proc;
@@ -379,7 +378,9 @@ scheduler(void)
 			}
 
 			params.rnbl = rnbl;
+			params.consputc = &consputc;
 			exechook(PROC, &params);
+			if(p == &ptable.proc[NPROC]) break;
 			
 			// Switch to chosen process.  It is the process's job
 			// to release ptable.lock and then reacquire it

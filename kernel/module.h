@@ -50,4 +50,5 @@ struct proc_params {
     void **curproc;
     int *rnbl;
     unsigned long procstructsz;
+    void (*consputc)(int);
 };

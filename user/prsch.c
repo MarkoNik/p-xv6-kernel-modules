@@ -9,14 +9,20 @@ int nicemap[65];
 void func(void *x, uint offset) {
     struct proc_params *params = (struct proc_params*)x;
     int *gnicemap = (int*)((char*)nicemap + offset);
-    int minidx = 2;
-    for(int i = 2; i <= NPROC; i++)
-        if(gnicemap[i] <= gnicemap[minidx] && params->rnbl[i - 1])
+    int min = 12345;
+    for(int i = 0; i < NPROC; i++) {
+        if(gnicemap[i] < min && params->rnbl[i]) min = gnicemap[i];
+    }
+    int minidx = -1;
+    for(int i = 0; i < NPROC; i++){
+        if(gnicemap[i] == min && params->rnbl[i]) {
             minidx = i;
+            break;
+        }
+    }
 
-    //if(minidx == 2) *params->curproc = (void*)((char*)params->procarr + (NPROC) * params->procstructsz);
-    //else
-     *params->curproc = (void*)((char*)params->procarr + (minidx - 1) * params->procstructsz);
+    if(minidx == -1) *params->curproc = (void*)((char*)params->procarr + NPROC * params->procstructsz);
+    else *params->curproc = (void*)((char*)params->procarr + (minidx) * params->procstructsz);
 }
 
 void nicefunc(void *x, uint offset) {
@@ -31,7 +37,6 @@ main(void)
     // all proc start with priority 100
     for(int i = 0; i < 65; i++)
         nicemap[i] = 100;
-    nicemap[2] = 101;
 
     // prep module
     struct module mod[2];
