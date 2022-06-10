@@ -216,6 +216,7 @@ UPROGS=\
 	$U/_sccol\
 	$U/_schis\
 	$U/_flenc\
+	$U/_flzip\
 	$U/_test\
 
 fs.img: $T/mkfs README $(UPROGS)

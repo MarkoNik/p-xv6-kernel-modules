@@ -76,19 +76,30 @@ sys_read(void)
 
 	if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
 		return -1;
-	int err = fileread(f, p, n);
 
-	// execute file decrypt
+	int x = fileread(f, p, n);
+	if(x == -1) return -1;
+
+	// execute restore size (for unzipping)
 	ilock(f->ip);
 	struct dat_params params;
 	params.inum = f->ip->inum;
-	params.n = n;
+	params.n = &x;
 	params.src = p;
 	params.consputc = &consputc;
+	// execute file decrypt
 	if(f->ip->type == T_FILE)
 		exechook(DEC, &params);
+
+	struct dat_params params2;
+	params2.inum = params.inum;
+	params2.n = &x;
+	if(f->ip->type == T_FILE && x > 0) {
+		exechook(RES, &params2);
+	}
 	iunlock(f->ip);
-	return err;
+	//cprintf("%d\n", x);
+	return x;
 }
 
 int

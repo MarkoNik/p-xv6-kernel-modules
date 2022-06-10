@@ -469,6 +469,7 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 		memmove(dst, bp->data + off%BSIZE, m);
 		brelse(bp);
 	}
+	
 	return n;
 }
 
@@ -477,16 +478,6 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 int
 writei(struct inode *ip, char *src, uint off, uint n)
 {
-	// execute file encrypt
-	struct dat_params params;
-	params.inum = ip->inum;
-	params.n = n;
-	params.off = off;
-	params.src = src;
-	params.consputc = &consputc;
-	if(ip->type == T_FILE)
-		exechook(ENC, &params);
-
 	uint tot, m;
 	struct buf *bp;
 

@@ -160,6 +160,8 @@ cgaputc(int c)
 		pos -= 80;
 		memset(crt+pos, 0, sizeof(crt[0])*(24*80 - pos));
 	}
+
+	// TODO PREMESTI U CONSOLEINTR
 skip:
 	outb(CRTPORT, 14);
 	outb(CRTPORT+1, pos>>8);

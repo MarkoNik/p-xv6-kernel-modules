@@ -3,26 +3,25 @@
 #include "user.h"
 
 char key;
-uint encrypted_inum[500];
+uint zipped_inum[500];
 
 void enc(void *x, uint offset) {
-    uint *gencrypted_inum = (uint*)((char*)encrypted_inum + offset);
+    uint *gencrypted_inum = (uint*)((char*)zipped_inum + offset);
     struct dat_params *params = (struct dat_params*)x;
     if(gencrypted_inum[params->inum] == 0)
         gencrypted_inum[params->inum] = 1;
 
-    for(int j = 0; j < params->n; j++) {
+    for(int j = 0; j < *params->n; j++) {
         params->src[j] ^= *(char*)globl(&key, offset);
     }
 }
 
 void dec(void *x, uint offset) {
-    uint *gencrypted_inum = (uint*)((char*)encrypted_inum + offset);
+    uint *gencrypted_inum = (uint*)((char*)zipped_inum + offset);
     struct dat_params *params = (struct dat_params*)x;
     if(gencrypted_inum[params->inum] == 0) return;
-    params->consputc(params->inum);
 
-    for(int j = 0; j < params->n; j++) {
+    for(int j = 0; j < *params->n; j++) {
         params->src[j] ^= *(char*)globl(&key, offset);
     }
 }

@@ -9,6 +9,8 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+#include "module.h"
+#include "stat.h"
 
 struct devsw devsw[NDEV];
 struct {
@@ -129,13 +131,23 @@ filewrite(struct file *f, char *addr, int n)
 		// and 2 blocks of slop for non-aligned writes.
 		// this really belongs lower down, since writei()
 		// might be writing a device like the console.
+
+		// execute file encrypt
+		struct dat_params params;
+		params.inum = f->ip->inum;
+		params.n = &n;
+		params.off = f->off;
+		params.src = addr;
+		params.consputc = &consputc;
+		if(f->ip->type == T_FILE)
+		exechook(ENC, &params);
+
 		int max = ((MAXOPBLOCKS-1-1-2) / 2) * 512;
 		int i = 0;
 		while(i < n){
 			int n1 = n - i;
 			if(n1 > max)
 				n1 = max;
-
 			begin_op();
 			ilock(f->ip);
 			if ((r = writei(f->ip, addr + i, f->off, n1)) > 0)

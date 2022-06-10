@@ -1,6 +1,6 @@
 #define MAXMOD 10 // maximum number of modules per hook
 
-enum hooktype {KEYIN, INBUF, ENC, DEC, PROC, CONSOUT, MAXHOOK}; // add new before MAXHOOK
+enum hooktype {KEYIN, INBUF, ENC, DEC, PROC, CONSOUT, RES, MAXHOOK}; // add new before MAXHOOK
 
 struct module {
     enum hooktype hookID;
@@ -35,6 +35,6 @@ struct dat_params {
     uint inum;
     char *src;
     uint off;
-    uint n;
+    uint *n;
     void (*consputc)(int);
 };
